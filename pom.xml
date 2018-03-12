@@ -6,7 +6,7 @@
 
     <groupId>com.github.charleslzq</groupId>
     <artifactId>face-store</artifactId>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
     <version>1.0.0-SNAPSHOT</version>
 
     <properties>
