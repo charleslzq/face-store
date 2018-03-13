@@ -18,7 +18,8 @@ interface FaceDataType<P : Meta, F : Meta> {
     val faceClass: Class<F>
 }
 
-interface ReadOnlyFaceStore<out P : Meta, out F : Meta> {
+interface ReadOnlyFaceStore<P : Meta, F : Meta> {
+    val dataType: FaceDataType<P, F>
     fun getPersonIds(): List<String> = emptyList()
     fun getFaceData(personId: String): FaceData<P, F>? = null
     fun getPerson(personId: String): P? = null

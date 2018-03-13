@@ -10,7 +10,7 @@ import java.util.*
  */
 open class FaceFileReadOnlyStore<P : Meta, F : Meta>(
         protected val directory: String,
-        protected val faceDataType: FaceDataType<P, F>
+        override val dataType: FaceDataType<P, F>
 ) : ReadOnlyFaceStore<P, F> {
     protected val gson = Converters.registerLocalDateTime(GsonBuilder()).create()
 
@@ -25,12 +25,12 @@ open class FaceFileReadOnlyStore<P : Meta, F : Meta>(
     }
 
     override fun getPerson(personId: String) =
-            loadDataFile(faceDataType.personClass, directory, personId)
+            loadDataFile(dataType.personClass, directory, personId)
 
     override fun getFaceIdList(personId: String) = listValidSubDirs(directory, personId)
 
     override fun getFace(personId: String, faceId: String) =
-            loadDataFile(faceDataType.faceClass, directory, personId, faceId)
+            loadDataFile(dataType.faceClass, directory, personId, faceId)
 
     protected fun listValidSubDirs(vararg paths: String) =
             Paths.get(*paths).toFile().list(this::dataFileExists).toList()
