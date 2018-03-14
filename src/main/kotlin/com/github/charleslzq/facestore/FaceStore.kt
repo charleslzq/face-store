@@ -43,3 +43,14 @@ interface FaceStoreChangeListener<in P : Meta, in F : Meta> {
     fun onFaceDelete(personId: String, faceId: String) {}
     fun onPersonFaceClear(personId: String) {}
 }
+
+abstract class CompositeReadWriteFaceStore<P : Meta, F : Meta>(
+        private val readOnlyStore: ReadOnlyFaceStore<P, F>
+): ReadWriteFaceStore<P, F> {
+    final override val dataType: FaceDataType<P, F> = readOnlyStore.dataType
+    final override fun getPersonIds() = readOnlyStore.getPersonIds()
+    final override fun getPerson(personId: String) = readOnlyStore.getPerson(personId)
+    final override fun getFaceData(personId: String) = readOnlyStore.getFaceData(personId)
+    final override fun getFaceIdList(personId: String) = readOnlyStore.getFaceIdList(personId)
+    final override fun getFace(personId: String, faceId: String) = readOnlyStore.getFace(personId, faceId)
+}
