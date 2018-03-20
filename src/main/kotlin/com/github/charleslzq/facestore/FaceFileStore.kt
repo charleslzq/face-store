@@ -1,6 +1,7 @@
 package com.github.charleslzq.facestore
 
 import com.fatboyindustrial.gsonjodatime.Converters
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import java.io.File
 import java.util.*
@@ -10,9 +11,9 @@ import java.util.*
  */
 open class FaceFileReadOnlyStore<P : Meta, F : Meta>(
         protected val directory: String,
-        override val dataType: FaceDataType<P, F>
+        override val dataType: FaceDataType<P, F>,
+        protected val gson: Gson = Converters.registerLocalDateTime(GsonBuilder()).create()
 ) : ReadOnlyFaceStore<P, F> {
-    protected val gson = Converters.registerLocalDateTime(GsonBuilder()).create()
 
     init {
         File(directory).mkdirs()
@@ -61,8 +62,9 @@ open class FaceFileReadOnlyStore<P : Meta, F : Meta>(
 open class FaceFileReadWriteStore<P : Meta, F : Meta>(
         directory: String,
         faceDataType: FaceDataType<P, F>,
+        gson: Gson = Converters.registerLocalDateTime(GsonBuilder()).create(),
         protected val listeners: MutableList<FaceStoreChangeListener<P, F>> = mutableListOf()
-) : FaceFileReadOnlyStore<P, F>(directory, faceDataType), ReadWriteFaceStore<P, F> {
+) : FaceFileReadOnlyStore<P, F>(directory, faceDataType, gson), ReadWriteFaceStore<P, F> {
 
     override fun savePerson(person: P) {
         val oldData = getPerson(person.id)
