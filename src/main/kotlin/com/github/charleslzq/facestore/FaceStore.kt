@@ -45,7 +45,7 @@ interface FaceStoreChangeListener<in P : Meta, in F : Meta> {
 }
 
 abstract class CompositeReadWriteFaceStore<P : Meta, F : Meta>(
-        private val readOnlyStore: ReadOnlyFaceStore<P, F>
+        protected val readOnlyStore: ReadOnlyFaceStore<P, F>
 ): ReadWriteFaceStore<P, F> {
     final override val dataType: FaceDataType<P, F> = readOnlyStore.dataType
     final override fun getPersonIds() = readOnlyStore.getPersonIds()
