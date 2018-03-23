@@ -1,10 +1,21 @@
 package com.github.charleslzq.facestore
 
 import org.joda.time.LocalDateTime
+import rx.Observable
 
 /**
  * Created by charleslzq on 18-2-28.
  */
+fun <T> createObservableFromNullable(data: T?): Observable<T> = Observable.create {
+    data?.run { it.onNext(this) }
+    it.onCompleted()
+}
+
+fun <T> createObservableFromNullable(generator: () -> T?): Observable<T> = Observable.create {
+    generator()?.run { it.onNext(this) }
+    it.onCompleted()
+}
+
 interface Meta {
     val id: String
     val createTime: LocalDateTime
@@ -21,10 +32,15 @@ interface FaceDataType<P : Meta, F : Meta> {
 interface ReadOnlyFaceStore<P : Meta, F : Meta> {
     val dataType: FaceDataType<P, F>
     fun getPersonIds(): List<String> = emptyList()
+    fun getPersonIdsAsObservable(): Observable<String> = Observable.from(getPersonIds())
     fun getFaceData(personId: String): FaceData<P, F>? = null
+    fun getFaceDataAsObservable(personId: String): Observable<FaceData<P, F>> = createObservableFromNullable(getFaceData(personId))
     fun getPerson(personId: String): P? = null
+    fun getPersonAsObservable(personId: String): Observable<P> = createObservableFromNullable(getPerson(personId))
     fun getFaceIdList(personId: String): List<String> = emptyList()
+    fun getFaceIdListAsObservable(personId: String): Observable<String> = Observable.from(getFaceIdList(personId))
     fun getFace(personId: String, faceId: String): F? = null
+    fun getFaceAsObservable(personId: String, faceId: String): Observable<F> = createObservableFromNullable(getFace(personId, faceId))
 }
 
 interface ReadWriteFaceStore<P : Meta, F : Meta> : ReadOnlyFaceStore<P, F> {
