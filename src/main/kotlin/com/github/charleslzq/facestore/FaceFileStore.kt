@@ -63,8 +63,8 @@ open class FaceFileReadWriteStore<P : Meta, F : Meta>(
         directory: String,
         faceDataType: FaceDataType<P, F>,
         gson: Gson = Converters.registerLocalDateTime(GsonBuilder()).create(),
-        val listeners: MutableList<FaceStoreChangeListener<P, F>> = mutableListOf()
-) : FaceFileReadOnlyStore<P, F>(directory, faceDataType, gson), ReadWriteFaceStore<P, F> {
+        override val listeners: MutableList<FaceStoreChangeListener<P, F>> = mutableListOf()
+) : FaceFileReadOnlyStore<P, F>(directory, faceDataType, gson), ListenableReadWriteFaceStore<P, F> {
 
     override fun savePerson(person: P) {
         val oldData = getPerson(person.id)

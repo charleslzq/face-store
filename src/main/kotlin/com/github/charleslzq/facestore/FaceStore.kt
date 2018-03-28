@@ -60,6 +60,10 @@ interface FaceStoreChangeListener<in P : Meta, in F : Meta> {
     fun onPersonFaceClear(personId: String) {}
 }
 
+interface ListenableReadWriteFaceStore<P : Meta, F : Meta> : ReadWriteFaceStore<P, F> {
+    val listeners: MutableList<FaceStoreChangeListener<P, F>>
+}
+
 abstract class CompositeReadWriteFaceStore<P : Meta, F : Meta>(
         readOnlyStore: ReadOnlyFaceStore<P, F>
 ) : ReadOnlyFaceStore<P, F> by readOnlyStore, ReadWriteFaceStore<P, F>
