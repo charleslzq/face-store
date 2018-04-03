@@ -11,7 +11,8 @@ import java.util.*
  */
 open class FaceFileReadOnlyStore<P : Meta, F : Meta>(
         protected val directory: String,
-        override val dataType: FaceDataType<P, F>,
+        final override val personClass: Class<P>,
+        final override val faceClass: Class<F>,
         protected val gson: Gson = Converters.registerLocalDateTime(GsonBuilder()).create()
 ) : ReadOnlyFaceStore<P, F> {
 
@@ -21,17 +22,13 @@ open class FaceFileReadOnlyStore<P : Meta, F : Meta>(
 
     override fun getPersonIds() = listValidSubDirs(directory)
 
-    override fun getFaceData(personId: String) = getPerson(personId)?.run {
-        FaceData(this, getFaceIdList(personId).mapNotNull { getFace(personId, it) })
-    }
-
     override fun getPerson(personId: String) =
-            loadDataFile(dataType.personClass, directory, personId)
+            loadDataFile(personClass, directory, personId)
 
     override fun getFaceIdList(personId: String) = listValidSubDirs(directory, personId)
 
     override fun getFace(personId: String, faceId: String) =
-            loadDataFile(dataType.faceClass, directory, personId, faceId)
+            loadDataFile(faceClass, directory, personId, faceId)
 
     protected fun listValidSubDirs(vararg paths: String) =
             Paths.get(*paths).toFile().list(this::dataFileExists).toList()
@@ -61,10 +58,11 @@ open class FaceFileReadOnlyStore<P : Meta, F : Meta>(
 
 open class FaceFileReadWriteStore<P : Meta, F : Meta>(
         directory: String,
-        faceDataType: FaceDataType<P, F>,
+        personClass: Class<P>,
+        faceClass: Class<F>,
         gson: Gson = Converters.registerLocalDateTime(GsonBuilder()).create(),
         override val listeners: MutableList<FaceStoreChangeListener<P, F>> = mutableListOf()
-) : FaceFileReadOnlyStore<P, F>(directory, faceDataType, gson), ListenableReadWriteFaceStore<P, F> {
+) : FaceFileReadOnlyStore<P, F>(directory, personClass, faceClass, gson), ListenableReadWriteFaceStore<P, F> {
 
     override fun savePerson(person: P) {
         val oldData = getPerson(person.id)
@@ -82,15 +80,9 @@ open class FaceFileReadWriteStore<P : Meta, F : Meta>(
         }
     }
 
-
-    override fun saveFaceData(faceData: FaceData<P, F>) {
-        savePerson(faceData.person)
-        faceData.faces.forEach { saveFace(faceData.person.id, it) }
-    }
-
-    override fun deleteFaceData(personId: String) {
+    override fun deletePerson(personId: String) {
         Paths.get(directory, personId).toFile().deleteRecursively()
-        listeners.forEach { it.onFaceDataDelete(personId) }
+        listeners.forEach { it.onPersonDelete(personId) }
     }
 
     override fun deleteFace(personId: String, faceId: String) {
@@ -98,15 +90,8 @@ open class FaceFileReadWriteStore<P : Meta, F : Meta>(
         listeners.forEach { it.onFaceDelete(personId, faceId) }
     }
 
-    override fun clearFace(personId: String) {
-        getFaceIdList(personId).forEach {
-            Paths.get(directory, personId, it).toFile().deleteRecursively()
-        }
-        listeners.forEach { it.onPersonFaceClear(personId) }
-    }
 
-
-    private fun saveDataFile(target: Any, vararg path: String) {
+    protected fun saveDataFile(target: Any, vararg path: String) {
         Paths.get(*path).toFile().mkdirs()
         Paths.get(*path, DATA_FILE_NAME).toFile().writeText(gson.toJson(target))
     }
